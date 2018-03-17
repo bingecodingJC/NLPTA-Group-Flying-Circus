@@ -1,9 +1,24 @@
 '''
-Apply LinearSVC
+There are two functions in the code below, and both functions use sklearn svm
+with LinearSVC kernal. 
+    
+The first function will show the insample accuracy score, outsample accuracy 
+score, and the running time using input of BoW process.
+
+The second function will show the insample accuracy score, outsample accuracy 
+score by changing the different parameters, that is C and loss function. 
+In addition,it will draw a heatmap of insampe and outsample accuracy scores by 
+different parameters. Lastly, it will print the best insample acccuracy score, 
+outsample accuracy score, and the running time. 
+
+@author: kuochenghao
+@date: Mar 16 2018
 
 '''
 
-from sklearn import svm         # To use sklearn svm
+# To use sklearn svm
+from sklearn import svm
+# To use functions from BoW_naive.py
 from BoW_Naive_Bayes import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,26 +27,33 @@ from time import time
 
 
 
-def BoW_Support_Vector_Machines(sample_size = 100, nth_day = 5,test_size_percentage = 0.33, exist_file = 0, save = 1):
+def BoW_Support_Vector_Machines(sample_size = 100, nth_day = 5,\
+                                test_size_percentage = 0.33, \
+                                exist_file = 0, save = 1):
     t0=time()
     X = BoW_process(sample_size,nth_day, exist_file, save )
     y = return_process(sample_size,nth_day).ravel()
+    # To split the data into training and test data
     count_train, count_test, y_train, y_test = \
     train_test_split(X, y, test_size=test_size_percentage, random_state=42)
-    clf = svm.LinearSVC().fit(count_train, y_train)   # use svm to fit data
+    # Use svm to fit data, and choose LinearSVC kernal
+    clf = svm.LinearSVC().fit(count_train, y_train)   
     #print(clf)
     insample_pred=clf.predict(count_train)
-    pred = clf.predict(count_test)
+    pred = clf.predict(count_test)    
     outsample_accuracy_score = metrics.accuracy_score(y_test, pred)   
     insample_accuracy_score = metrics.accuracy_score(y_train, insample_pred)
     t1=time()
     print ('BoW_Support_Vector_Machines takes %f' %(t1-t0))
-    print("insample_accuracy_score,outsample_accuracy_score",insample_accuracy_score,outsample_accuracy_score)
+    print("insample_accuracy_score,outsample_accuracy_score",\
+          insample_accuracy_score,outsample_accuracy_score)
     return pred
     
-def BoW_Support_Vector_Machines_plot(sample_size = 100, nth_day = 5,test_size_percentage = 0.33, exist_file = 0, save = 1):
+def BoW_Support_Vector_Machines_plot(sample_size = 100, nth_day = 5,\
+                                     test_size_percentage = 0.33, \
+                                     exist_file = 0, save = 1):
     t0=time()
-    print(__doc__)
+    #print(__doc__)
     
     # Utility function to move the midpoint of a colormap to be around
     # the values of interest.
@@ -49,11 +71,12 @@ def BoW_Support_Vector_Machines_plot(sample_size = 100, nth_day = 5,test_size_pe
     X = BoW_process(sample_size,nth_day, exist_file , save)
     y = return_process(sample_size,nth_day).ravel()
   
-    
-    C_range = np.logspace(-2, 2, 5)
+    # Define the parameter ranges
+    C_range = np.logspace(-8, -3, 6)
     loss_range = ['hinge','squared_hinge']
     
-    scores_outsample=[0]   # list to record score
+    # Ｌist to record accuracy scores with different parameters 
+    scores_outsample=[0] 
     scores_insample=[0]
     
     count_train, count_test, y_train, y_test = \
@@ -65,16 +88,19 @@ def BoW_Support_Vector_Machines_plot(sample_size = 100, nth_day = 5,test_size_pe
     best_outsample_score=0
     best_outsample_parameter=[0,0]  # (C,loss)  
     
-        
+    # The for loop is to calulate different accuracy scores by changing 
+    # parameters       
     for C in C_range:
         for loss in loss_range:
-            clf = svm.LinearSVC(C=C,loss=loss).fit(count_train, y_train)   # use svm to fit data
+            # Use svm to fit data, and choose LinearSVC kernal
+            clf = svm.LinearSVC(C=C,loss=loss).fit(count_train, y_train)  
             #print(clf)
             insample_pred=clf.predict(count_train)
             pred = clf.predict(count_test)
             outsample_accuracy_score = metrics.accuracy_score(y_test, pred)   
             insample_accuracy_score = metrics.accuracy_score(y_train, insample_pred)
             
+            # To record the info of the best insample and outsample scores 
             if outsample_accuracy_score>max(scores_outsample):
                 best_outsample_score=outsample_accuracy_score
                 best_outsample_parameter[0]=C
@@ -87,31 +113,32 @@ def BoW_Support_Vector_Machines_plot(sample_size = 100, nth_day = 5,test_size_pe
             scores_outsample.append(outsample_accuracy_score)
             scores_insample.append(insample_accuracy_score)
             print ('C:{},loss:{}'.format(C, loss))
-            print("insample_accuracy_score,outsample_accuracy_score",insample_accuracy_score,outsample_accuracy_score)
+            print("insample_accuracy_score,outsample_accuracy_score",\
+                  insample_accuracy_score,outsample_accuracy_score)
 
 
     print("Insample: The best parameters with C: %s loss: %s  a score of %s"
-          % (best_insample_parameter[0],best_insample_parameter[1],best_insample_score))
+          % (best_insample_parameter[0],best_insample_parameter[1],\
+             best_insample_score))
 
     print("Outsample: The best parameters with C: %s loss: %s  a score of %s"
-          % (best_outsample_parameter[0],best_outsample_parameter[1],best_outsample_score))
+          % (best_outsample_parameter[0],best_outsample_parameter[1],\
+             best_outsample_score))
 
     
-    # #############################################################################
+    # #########################################################################
     # draw visualization of parameter effect 
   
-    scores_outsample_grid = np.array(scores_outsample[1:]).reshape(len(C_range),len(loss_range))
-    scores_insample_grid=np.array(scores_insample[1:]).reshape(len(C_range),len(loss_range))
+    scores_outsample_grid = np.array(scores_outsample[1:]).reshape\
+    (len(C_range),len(loss_range))
+    scores_insample_grid=np.array(scores_insample[1:]).reshape\
+    (len(C_range),len(loss_range))
     #print(scores_outsample[1:])
     #print(len(scores_outsample[1:]))
+    
     # Draw heatmap of the validation accuracy as a function of loss and C
-    #
     # The score are encoded as colors with the hot colormap which varies from dark
-    # red to bright yellow. As the most interesting scores are all located in the
-    # 0.92 to 0.97 range we use a custom normalizer to set the mid-point to 0.92 so
-    # as to make it easier to visualize the small variations of score values in the
-    # interesting range while not brutally collapsing all the low score values to
-    # the same color.
+    # red to bright yellow. 
     
     # OutSample plot
     plt.figure(figsize=(8, 6))
@@ -141,18 +168,28 @@ def BoW_Support_Vector_Machines_plot(sample_size = 100, nth_day = 5,test_size_pe
      
     t1=time()
     print ('BoW_Support_Vector_Machines_plot takes %f' %(t1-t0))
-    
 
-
+'''
+====================================
+Explain the inputs of the functions
+====================================
+1. sample_size: use total samples(len(Return_old_dict)) or part of the samples(100)
+2. nth_day: to classify nth_day cumulative return ,and the range is from 1 to 5.
+3. test_size_percentage: the percentage of the samples for testing.    
+4. exist_file: if the folder exists a file of BoW_process result, choose 1. 
+   Others choose 0. Please note it takes time for BoW_process, so it's better
+   to save a file in folder for the first time.
+5. save: whether to save a BoW_process result in folder. 1 for save. 0 for not save.
+'''
 
 if __name__ == '__main__':
-    sample_size = len(Return_old_dict)
-    #sample_size = 100
+    #sample_size = len(Return_old_dict)
+    sample_size = 100
     nth_day = 5
     test_size_percentage = 0.33
-    exist_file=1
+    exist_file=0
     save = 1
-    #result = BoW_Support_Vector_Machines(sample_size, nth_day, test_size_percentage, exist_file, save)
-    result = BoW_Support_Vector_Machines_plot(sample_size, nth_day, test_size_percentage, exist_file, save)
+    result = BoW_Support_Vector_Machines(sample_size, nth_day, test_size_percentage, exist_file, save)
+    #result = BoW_Support_Vector_Machines_plot(sample_size, nth_day, test_size_percentage, exist_file, save)
 
 
